@@ -6,10 +6,9 @@
     <title>Gluten Pro Shop</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        /* --- НАСТРОЙКИ СТРАНИЦЫ И ФОНА --- */
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: #0f0f0f; /* Темный фон */
+            background-color: #0f0f0f;
             color: white;
             margin: 0;
             padding: 16px;
@@ -19,136 +18,85 @@
             z-index: 1;
         }
 
-        /* МАГИЯ ЛОГОТИПА НА ФОНЕ */
         body::before {
             content: "";
             position: fixed;
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 100%;
-            
-            /* 👇 ССЫЛКА НА ЛОГОТИП */
-            background-image: url('https://supabase.apexstack.ru/storage/v1/object/public/shop/Logo.png'); 
-            
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url('https://supabase.apexstack.ru/storage/v1/object/public/shop/Logo.png');
             background-position: center;
             background-repeat: no-repeat;
-            
-            /* cover = растянуть на весь экран (может обрезать края) */
-            /* contain = показать целиком (будут пустые полосы) */
-            background-size: cover; 
-            
-            opacity: 0.3; /* Сделал поярче (было 0.1). Если мешает тексту - поставь 0.15 */
-            z-index: -1; 
-            /* filter: grayscale(100%);  <-- УДАЛИЛ ЭТУ СТРОКУ, ТЕПЕРЬ БУДЕТ ЦВЕТНОЕ */
+            background-size: cover;
+            opacity: 0.15;
+            z-index: -1;
         }
 
         h1 {
             font-size: 24px;
             margin-bottom: 20px;
             font-weight: 800;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            display: flex; align-items: center; gap: 10px;
         }
 
-        /* --- СЕТКА ТОВАРОВ --- */
         .grid {
             display: grid;
-            grid-template-columns: 1fr 1fr; 
-            gap: 12px; 
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
         }
 
-        /* --- СТИЛЬ КАРТОЧКИ --- */
         .card {
             position: relative;
-            height: 220px; 
+            height: 220px;
             border-radius: 16px;
             overflow: hidden;
-            background-color: rgba(34, 34, 34, 0.8); /* Полупрозрачная подложка карточки */
+            background-color: rgba(34, 34, 34, 0.8);
             box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            transition: transform 0.1s ease;
-            border: 1px solid rgba(255,255,255,0.1); /* Тонкая рамка для стиля */
-        }
-
-        .card:active {
-            transform: scale(0.97); 
+            border: 1px solid rgba(255,255,255,0.1);
         }
 
         .card-image {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 1;
+            width: 100%; height: 100%; object-fit: cover;
+            position: absolute; top: 0; left: 0; z-index: 1;
         }
 
         .card-gradient {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 80%;
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 80%;
             background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 50%, transparent 100%);
             z-index: 2;
         }
 
         .card-content {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            padding: 12px;
-            box-sizing: border-box;
-            z-index: 3;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
+            position: absolute; bottom: 0; left: 0; width: 100%;
+            padding: 12px; box-sizing: border-box; z-index: 3;
+            display: flex; flex-direction: column; justify-content: flex-end;
         }
 
         .card-title {
-            font-size: 14px;
-            font-weight: 600;
-            line-height: 1.3;
-            margin-bottom: 8px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+            font-size: 14px; font-weight: 600; line-height: 1.3;
+            margin-bottom: 8px; text-shadow: 0 2px 4px rgba(0,0,0,0.8);
         }
 
         .card-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            display: flex; justify-content: space-between; align-items: center;
         }
 
         .card-price {
-            font-size: 16px;
-            font-weight: 700;
-            color: #ffda6b; 
+            font-size: 16px; font-weight: 700; color: #ffda6b;
         }
 
         .add-btn {
-            background-color: #ffda6b;
-            color: black;
-            border: none;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            font-size: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            background-color: #ffda6b; color: black; border: none;
+            width: 30px; height: 30px; border-radius: 50%;
+            font-size: 20px; display: flex; align-items: center; justify-content: center;
             cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            font-weight: bold;
         }
         
         .loader {
-            text-align: center;
-            margin-top: 50px;
-            color: #888;
-            grid-column: span 2;
+            text-align: center; margin-top: 50px; color: #888; grid-column: span 2;
+        }
+        
+        .error-msg {
+            color: #ff6b6b; text-align: center; grid-column: span 2;
+            background: rgba(50,0,0,0.5); padding: 10px; border-radius: 8px;
         }
     </style>
 </head>
@@ -162,44 +110,46 @@
 
     <script>
         const tg = window.Telegram.WebApp;
-        tg.expand(); 
+        tg.expand();
 
         const API_URL = 'https://n8n.apexstack.ru/webhook/products'; 
 
         async function loadProducts() {
             try {
                 const response = await fetch(API_URL);
+                const result = await response.json();
                 
-                if (!response.ok) {
-                    throw new Error(`Ошибка сети: ${response.status}`);
+                // Если n8n вернул ошибку, показываем её
+                if (result.message && !result.data) {
+                    throw new Error("n8n Error: " + result.message);
                 }
 
-                const result = await response.json();
-                const products = result.data; 
+                const products = result.data;
 
                 const container = document.getElementById('products-container');
-                
+                container.innerHTML = ''; 
+
                 if (!products || products.length === 0) {
-                    container.innerHTML = '<div class="loader">Меню пока пустое :(</div>';
+                    container.innerHTML = '<div class="error-msg">Список товаров пуст.<br>Проверь таблицу Supabase</div>';
                     return;
                 }
-
-                container.innerHTML = ''; 
 
                 products.forEach(product => {
                     const card = document.createElement('div');
                     card.className = 'card';
                     
                     const imageSrc = product.image_url ? product.image_url : 'https://via.placeholder.com/300x400?text=No+Image';
+                    // ИСПОЛЬЗУЕМ product.title ВМЕСТО product.name
+                    const title = product.title || 'Без названия';
 
                     card.innerHTML = `
-                        <img src="${imageSrc}" class="card-image" alt="${product.name}">
+                        <img src="${imageSrc}" class="card-image" alt="${title}">
                         <div class="card-gradient"></div>
                         <div class="card-content">
-                            <div class="card-title">${product.name}</div>
+                            <div class="card-title">${title}</div>
                             <div class="card-footer">
                                 <span class="card-price">${product.price} ₽</span>
-                                <button class="add-btn" onclick="addToCart('${product.name}', ${product.price})">
+                                <button class="add-btn" onclick="addToCart('${title}', ${product.price})">
                                     +
                                 </button>
                             </div>
@@ -210,11 +160,10 @@
 
             } catch (error) {
                 console.error('Ошибка:', error);
-                // Выводим ошибку прямо на экран, чтобы мы её видели
                 document.getElementById('products-container').innerHTML = `
-                    <div style="grid-column: span 2; text-align: center; color: #ff6b6b;">
-                        <p>Не удалось загрузить меню</p>
-                        <p style="font-size: 12px; opacity: 0.7;">${error.message}</p>
+                    <div class="error-msg">
+                        <p>Ошибка загрузки</p>
+                        <p style="font-size: 12px; opacity: 0.8;">${error.message}</p>
                     </div>`;
             }
         }
