@@ -119,12 +119,14 @@
                 const response = await fetch(API_URL);
                 const result = await response.json();
                 
-                // Если n8n вернул ошибку, показываем её
-                if (result.message && !result.data) {
-                    throw new Error("n8n Error: " + result.message);
+                // --- ИСПРАВЛЕНИЕ ТУТ ---
+                // Проверяем: пришел список сразу (как у тебя сейчас) ИЛИ внутри data?
+                let products;
+                if (Array.isArray(result)) {
+                    products = result; // Это твой случай!
+                } else {
+                    products = result.data; // На случай если n8n изменится
                 }
-
-                const products = result.data;
 
                 const container = document.getElementById('products-container');
                 container.innerHTML = ''; 
@@ -138,8 +140,7 @@
                     const card = document.createElement('div');
                     card.className = 'card';
                     
-                    const imageSrc = product.image_url ? product.image_url : 'https://via.placeholder.com/300x400?text=No+Image';
-                    // ИСПОЛЬЗУЕМ product.title ВМЕСТО product.name
+                    const imageSrc = product.image_url && product.image_url !== "EMPTY" ? product.image_url : 'https://via.placeholder.com/300x400?text=No+Image';
                     const title = product.title || 'Без названия';
 
                     card.innerHTML = `
