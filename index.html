@@ -12,21 +12,27 @@
             color: white;
             margin: 0;
             padding: 16px;
+            padding-bottom: 80px; /* Отступ снизу, чтобы контент не перекрывался кнопкой */
             -webkit-tap-highlight-color: transparent;
             min-height: 100vh;
             position: relative;
             z-index: 1;
         }
 
+        /* ФОН С ЛОГОТИПОМ */
         body::before {
             content: "";
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background-image: url('https://supabase.apexstack.ru/storage/v1/object/public/shop/logoo.png');
+            
+            /* 👇👇👇 ВСТАВЬ СВОЮ РАБОЧУЮ ССЫЛКУ НА ЛОГО НИЖЕ 👇👇👇 */
+            background-image: url('https://supabase.apexstack.ru/storage/v1/object/public/shop/Logo.png');
+            
             background-position: center;
             background-repeat: no-repeat;
             background-size: cover;
-            opacity: 0.15;
+            /* Инверсия цвета для темной темы + прозрачность */
+            filter: invert(1) opacity(0.15); 
             z-index: -1;
         }
 
@@ -45,51 +51,91 @@
 
         .card {
             position: relative;
-            height: 220px;
+            height: 240px; /* Чуть выше, чтобы влез счетчик */
             border-radius: 16px;
             overflow: hidden;
-            background-color: rgba(34, 34, 34, 0.8);
+            background-color: rgba(34, 34, 34, 0.9);
             box-shadow: 0 4px 12px rgba(0,0,0,0.3);
             border: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            flex-direction: column;
         }
 
         .card-image {
-            width: 100%; height: 100%; object-fit: cover;
-            position: absolute; top: 0; left: 0; z-index: 1;
-        }
-
-        .card-gradient {
-            position: absolute; bottom: 0; left: 0; width: 100%; height: 80%;
-            background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 50%, transparent 100%);
-            z-index: 2;
+            width: 100%; height: 120px; /* Фиксированная высота картинки */
+            object-fit: cover;
+            background-color: #333;
         }
 
         .card-content {
-            position: absolute; bottom: 0; left: 0; width: 100%;
-            padding: 12px; box-sizing: border-box; z-index: 3;
-            display: flex; flex-direction: column; justify-content: flex-end;
+            padding: 10px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
 
         .card-title {
-            font-size: 14px; font-weight: 600; line-height: 1.3;
-            margin-bottom: 8px; text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+            font-size: 13px; font-weight: 600; line-height: 1.3;
+            margin-bottom: 8px;
+            height: 34px; /* Ограничение высоты заголовка (2 строки) */
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
         }
 
         .card-footer {
             display: flex; justify-content: space-between; align-items: center;
+            margin-top: auto;
         }
 
         .card-price {
-            font-size: 16px; font-weight: 700; color: #ffda6b;
+            font-size: 15px; font-weight: 700; color: #ffda6b;
         }
 
-        .add-btn {
-            background-color: #ffda6b; color: black; border: none;
-            width: 30px; height: 30px; border-radius: 50%;
-            font-size: 20px; display: flex; align-items: center; justify-content: center;
+        /* --- КНОПКИ СЧЕТЧИКА --- */
+        .counter-controls {
+            display: flex;
+            align-items: center;
+            background: #444;
+            border-radius: 20px;
+            padding: 2px;
+        }
+
+        .btn-control {
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            border: none;
+            font-size: 16px; font-weight: bold;
+            display: flex; align-items: center; justify-content: center;
             cursor: pointer;
+            transition: 0.1s;
+        }
+
+        .btn-minus {
+            background-color: transparent;
+            color: #ffda6b;
         }
         
+        .btn-plus {
+            background-color: #ffda6b;
+            color: black;
+        }
+
+        .btn-control:active { transform: scale(0.9); }
+
+        .count-display {
+            width: 20px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 600;
+            margin: 0 2px;
+        }
+
+        /* Скрываем кнопку минус и цифру, если товара 0 */
+        .hidden { display: none; }
+
         .loader {
             text-align: center; margin-top: 50px; color: #888; grid-column: span 2;
         }
@@ -112,20 +158,27 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
+        // Ссылка на твой n8n
         const API_URL = 'https://n8n.apexstack.ru/webhook/products'; 
+
+        // Корзина: храним тут выбранные товары
+        // Format: { "Вареники с вишней": { count: 2, price: 500 } }
+        let cart = {};
+
+        // Настраиваем Главную Кнопку (та что внизу)
+        tg.MainButton.textColor = "#FFFFFF";
+        tg.MainButton.color = "#2cab37"; // Зеленый цвет кнопки
 
         async function loadProducts() {
             try {
                 const response = await fetch(API_URL);
                 const result = await response.json();
                 
-                // --- ИСПРАВЛЕНИЕ ТУТ ---
-                // Проверяем: пришел список сразу (как у тебя сейчас) ИЛИ внутри data?
                 let products;
                 if (Array.isArray(result)) {
-                    products = result; // Это твой случай!
+                    products = result;
                 } else {
-                    products = result.data; // На случай если n8n изменится
+                    products = result.data;
                 }
 
                 const container = document.getElementById('products-container');
@@ -142,17 +195,23 @@
                     
                     const imageSrc = product.image_url && product.image_url !== "EMPTY" ? product.image_url : 'https://via.placeholder.com/300x400?text=No+Image';
                     const title = product.title || 'Без названия';
+                    const price = product.price;
+
+                    // Уникальный ID для элементов карточки
+                    const id = product.id || Math.random().toString(36).substr(2, 9);
 
                     card.innerHTML = `
                         <img src="${imageSrc}" class="card-image" alt="${title}">
-                        <div class="card-gradient"></div>
                         <div class="card-content">
                             <div class="card-title">${title}</div>
                             <div class="card-footer">
-                                <span class="card-price">${product.price} ₽</span>
-                                <button class="add-btn" onclick="addToCart('${title}', ${product.price})">
-                                    +
-                                </button>
+                                <span class="card-price" id="price-${id}">${price} ₽</span>
+                                
+                                <div class="counter-controls">
+                                    <button class="btn-control btn-minus hidden" id="minus-${id}" onclick="updateCart('${id}', '${title}', ${price}, -1)">−</button>
+                                    <span class="count-display hidden" id="count-${id}">0</span>
+                                    <button class="btn-control btn-plus" onclick="updateCart('${id}', '${title}', ${price}, 1)">+</button>
+                                </div>
                             </div>
                         </div>
                     `;
@@ -169,13 +228,92 @@
             }
         }
 
-        function addToCart(name, price) {
-            tg.sendData(JSON.stringify({ item: name, price: price }));
-            tg.HapticFeedback.impactOccurred('light');
+        // Функция обновления корзины
+        function updateCart(id, title, price, change) {
+            // Если товара еще нет в корзине, создаем запись
+            if (!cart[id]) {
+                cart[id] = { title: title, price: price, count: 0 };
+            }
+
+            // Меняем количество
+            cart[id].count += change;
+
+            // Если стало меньше 0, возвращаем 0
+            if (cart[id].count < 0) cart[id].count = 0;
+
+            // --- Обновляем интерфейс карточки ---
+            const countEl = document.getElementById(`count-${id}`);
+            const minusBtn = document.getElementById(`minus-${id}`);
+            const priceEl = document.getElementById(`price-${id}`);
+
+            countEl.innerText = cart[id].count;
+
+            // Показываем/скрываем кнопку минус и счетчик
+            if (cart[id].count > 0) {
+                countEl.classList.remove('hidden');
+                minusBtn.classList.remove('hidden');
+                // Динамическая цена (Цена за шт * кол-во)
+                priceEl.innerText = (price * cart[id].count) + " ₽";
+                priceEl.style.color = "#ffffff"; // Белый цвет, когда выбрано
+            } else {
+                countEl.classList.add('hidden');
+                minusBtn.classList.add('hidden');
+                // Возвращаем цену за 1 шт
+                priceEl.innerText = price + " ₽"; 
+                priceEl.style.color = "#ffda6b"; // Золотой цвет (исходный)
+                delete cart[id]; // Удаляем из корзины, если 0
+            }
+
+            tg.HapticFeedback.impactOccurred('light'); // Вибрация
+            updateMainButton(); // Обновляем кнопку внизу
         }
+
+        // Функция обновления Главной Кнопки
+        function updateMainButton() {
+            let totalSum = 0;
+            let totalItems = 0;
+
+            for (let key in cart) {
+                const item = cart[key];
+                if (item.count > 0) {
+                    totalSum += item.price * item.count;
+                    totalItems += item.count;
+                }
+            }
+
+            if (totalItems > 0) {
+                tg.MainButton.setText(`Заказать на ${totalSum} ₽`);
+                tg.MainButton.show();
+            } else {
+                tg.MainButton.hide();
+            }
+        }
+
+        // Обработка нажатия на Главную Кнопку
+        tg.MainButton.onClick(function() {
+            // Превращаем объект корзины в красивый список для отправки
+            const orderData = {
+                items: [],
+                total_price: 0
+            };
+
+            for (let key in cart) {
+                if (cart[key].count > 0) {
+                    orderData.items.push({
+                        title: cart[key].title,
+                        count: cart[key].count,
+                        price: cart[key].price,
+                        sum: cart[key].price * cart[key].count
+                    });
+                    orderData.total_price += cart[key].price * cart[key].count;
+                }
+            }
+
+            // Отправляем данные боту (в n8n или просто в чат)
+            tg.sendData(JSON.stringify(orderData));
+        });
 
         loadProducts();
     </script>
 </body>
 </html>
-
