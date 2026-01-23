@@ -50,7 +50,7 @@
     </style>
 </head>
 <body>
-    <h1>Меню 2.0 <span style="font-size: 20px;">🥟</span></h1>
+    <h1>Меню 2.1 <span style="font-size: 20px;">🥟</span></h1>
     <div class="grid" id="products-container"><div class="loader">Загружаем вкусности...</div></div>
 
     <script>
@@ -118,19 +118,37 @@
             if (totalItems > 0) { tg.MainButton.setText(`Заказать на ${totalSum} ₽`); tg.MainButton.show(); } else { tg.MainButton.hide(); }
         }
 
+        // --- БРОНЕБОЙНАЯ ОТПРАВКА ---
         tg.MainButton.onClick(function() {
-            const orderData = { items: [], total_price: 0 };
-            for (let key in cart) {
-                if (cart[key].count > 0) {
-                    orderData.items.push({
-                        title: cart[key].title, count: cart[key].count,
-                        price: cart[key].price, sum: cart[key].price * cart[key].count
-                    });
-                    orderData.total_price += cart[key].price * cart[key].count;
+            try {
+                // 1. Показываем "крутилку", чтобы ты понял, что клик прошел
+                tg.MainButton.showProgress(true);
+
+                const orderData = { items: [], total_price: 0 };
+                for (let key in cart) {
+                    if (cart[key].count > 0) {
+                        orderData.items.push({
+                            title: cart[key].title, count: cart[key].count,
+                            price: cart[key].price, sum: cart[key].price * cart[key].count
+                        });
+                        orderData.total_price += cart[key].price * cart[key].count;
+                    }
                 }
+
+                // 2. Отправляем данные
+                const data = JSON.stringify(orderData);
+                tg.sendData(data);
+                
+                // 3. ПРИНУДИТЕЛЬНО закрываем окно через 100мс (страховка для Desktop)
+                setTimeout(function() {
+                    tg.close();
+                }, 100);
+
+            } catch (e) {
+                // Если вдруг ошибка в коде - покажем её
+                alert("Ошибка: " + e.message);
+                tg.MainButton.hideProgress();
             }
-            // Главная команда! Она сама закроет окно.
-            tg.sendData(JSON.stringify(orderData)); 
         });
 
         loadProducts();
