@@ -12,7 +12,7 @@
             color: white;
             margin: 0;
             padding: 16px;
-            padding-bottom: 80px; /* Отступ снизу для кнопки */
+            padding-bottom: 80px;
             -webkit-tap-highlight-color: transparent;
             min-height: 100vh;
             position: relative;
@@ -24,7 +24,6 @@
             content: "";
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            /* 👇 Исправленная ссылка на логотип */
             background-image: url('https://supabase.apexstack.ru/storage/v1/object/public/shop/Logo.png');
             background-position: center;
             background-repeat: no-repeat;
@@ -80,7 +79,6 @@
             font-size: 15px; font-weight: 700; color: #ffda6b;
         }
 
-        /* Кнопки счетчика */
         .counter-controls {
             display: flex; align-items: center;
             background: #444; border-radius: 20px; padding: 2px;
@@ -102,7 +100,6 @@
         }
 
         .hidden { display: none; }
-
         .loader { text-align: center; margin-top: 50px; color: #888; grid-column: span 2; }
         .error-msg {
             color: #ff6b6b; text-align: center; grid-column: span 2;
@@ -112,7 +109,7 @@
 </head>
 <body>
 
-    <h1>Меню 2.0 <span style="font-size: 20px;">🥟</span></h1>
+    <h1>Меню DEBUG 🛠️</h1>
     
     <div class="grid" id="products-container">
         <div class="loader">Загружаем вкусности...</div>
@@ -122,12 +119,10 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // Ссылка на n8n для получения товаров
         const API_URL = 'https://n8n.apexstack.ru/webhook/products'; 
 
         let cart = {};
 
-        // Настройка Главной Кнопки
         tg.MainButton.textColor = "#FFFFFF";
         tg.MainButton.color = "#2cab37";
 
@@ -233,22 +228,43 @@
             }
         }
 
-        // ОТПРАВКА ЗАКАЗА
+        // --- ДИАГНОСТИКА ОТПРАВКИ ---
         tg.MainButton.onClick(function() {
-            const orderData = { items: [], total_price: 0 };
-            for (let key in cart) {
-                if (cart[key].count > 0) {
-                    orderData.items.push({
-                        title: cart[key].title,
-                        count: cart[key].count,
-                        price: cart[key].price,
-                        sum: cart[key].price * cart[key].count
-                    });
-                    orderData.total_price += cart[key].price * cart[key].count;
+            try {
+                // Маячок №1
+                alert("1. Кнопка нажата. Начинаем сборку заказа..."); 
+                
+                const orderData = { items: [], total_price: 0 };
+                for (let key in cart) {
+                    if (cart[key].count > 0) {
+                        orderData.items.push({
+                            title: cart[key].title,
+                            count: cart[key].count,
+                            price: cart[key].price,
+                            sum: cart[key].price * cart[key].count
+                        });
+                        orderData.total_price += cart[key].price * cart[key].count;
+                    }
                 }
+
+                // Маячок №2
+                alert("2. Данные собраны! Сумма: " + orderData.total_price + ". Отправляем...");
+
+                // Попытка отправки
+                const dataToSend = JSON.stringify(orderData);
+                tg.sendData(dataToSend);
+
+                // Если мы дошли сюда, значит sendData сработал (но окно может не закрыться сразу на ПК)
+                // Маячок №3
+                alert("3. Команда sendData ушла! Сейчас окно должно закрыться.");
+                
+                // Принудительно закрываем (на всякий случай)
+                tg.close(); 
+                
+            } catch (error) {
+                // Если случилась ошибка - мы её увидим!
+                alert("❌ ОШИБКА: " + error.message);
             }
-            // Отправляем данные боту (приложение закроется)
-            tg.sendData(JSON.stringify(orderData));
         });
 
         loadProducts();
